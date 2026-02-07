@@ -1,14 +1,14 @@
-import fs from "fs";
-import path from "path";
-import { JSONFilePreset } from "lowdb/node";
+import mongoose from "mongoose";
 
-const dataDir = path.resolve("./data");
-const dbPath = path.join(dataDir, "crm.json");
+const connectDB = async () => {
+  const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/minicrm";
+  try {
+    await mongoose.connect(uri);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection error:", error.message);
+    process.exit(1);
+  }
+};
 
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const dbPromise = JSONFilePreset(dbPath, { leads: [] });
-
-export const getDb = async () => dbPromise;
+export default connectDB;
