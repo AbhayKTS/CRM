@@ -1,89 +1,94 @@
+import crypto from "crypto";
 import express from "express";
-import { getDb, serializeNotes, deserializeNotes } from "./db.js";
+import { getDb } from "./db.js";
 import { authMiddleware } from "./auth.js";
 
 const router = express.Router();
-const db = getDb();
 
-const mapLead = (row) => ({
-  id: row.id,
-  name: row.name,
-  email: row.email,
-  source: row.source,
-  status: row.status,
-  notes: deserializeNotes(row.notes),
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
+const mapLead = (lead) => ({
+  id: lead.id,
+  name: lead.name,
+  email: lead.email,
+  source: lead.source,
+  status: lead.status,
+  notes: lead.notes,
+  createdAt: lead.createdAt,
+  updatedAt: lead.updatedAt,
 });
 
-router.post("/", (req, res) => {
+const withDb = async () => {
+  const db = await getDb();
+  await db.read();
+  db.data ||= { leads: [] };
+  return db;
+};
+
+router.post("/", async (req, res) => {
   const { name, email, source = "website", note } = req.body;
   if (!name || !email) {
     return res.status(400).json({ error: "Name and email are required" });
   }
   const timestamp = new Date().toISOString();
-  const notes = note ? [{ text: note, createdAt: timestamp }] : [];
-  const stmt = db.prepare(
-    `INSERT INTO leads (name, email, source, status, notes, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  );
-  const info = stmt.run(
+  const db = await withDb();
+  const lead = {
+    id: crypto.randomUUID(),
     name,
     email,
     source,
-    "new",
-    serializeNotes(notes),
-    timestamp,
-    timestamp
-  );
-  const lead = db.prepare("SELECT * FROM leads WHERE id = ?").get(info.lastInsertRowid);
+    status: "new",
+    notes: note ? [{ text: note, createdAt: timestamp }] : [],
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+  db.data.leads.push(lead);
+  await db.write();
   return res.status(201).json(mapLead(lead));
 });
 
 router.use(authMiddleware);
 
-router.get("/", (req, res) => {
-  const rows = db.prepare("SELECT * FROM leads ORDER BY created_at DESC").all();
+router.get("/", async (req, res) => {
+  const db = await withDb();
+  const rows = [...db.data.leads].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
   return res.json(rows.map(mapLead));
 });
 
-router.get("/summary", (req, res) => {
-  const total = db.prepare("SELECT COUNT(*) as count FROM leads").get().count;
-  const converted = db
-    .prepare("SELECT COUNT(*) as count FROM leads WHERE status = 'converted'")
-    .get().count;
-  const contacted = db
-    .prepare("SELECT COUNT(*) as count FROM leads WHERE status = 'contacted'")
-    .get().count;
+router.get("/summary", async (req, res) => {
+  const db = await withDb();
+  const total = db.data.leads.length;
+  const converted = db.data.leads.filter((lead) => lead.status === "converted").length;
+  const contacted = db.data.leads.filter((lead) => lead.status === "contacted").length;
   return res.json({ total, contacted, converted });
 });
 
-router.get("/:id", (req, res) => {
-  const lead = db.prepare("SELECT * FROM leads WHERE id = ?").get(req.params.id);
+router.get("/:id", async (req, res) => {
+  const db = await withDb();
+  const lead = db.data.leads.find((item) => item.id === req.params.id);
   if (!lead) {
     return res.status(404).json({ error: "Lead not found" });
   }
   return res.json(mapLead(lead));
 });
 
-router.patch("/:id", (req, res) => {
+router.patch("/:id", async (req, res) => {
   const { status, note } = req.body;
-  const lead = db.prepare("SELECT * FROM leads WHERE id = ?").get(req.params.id);
+  const db = await withDb();
+  const lead = db.data.leads.find((item) => item.id === req.params.id);
   if (!lead) {
     return res.status(404).json({ error: "Lead not found" });
   }
   const timestamp = new Date().toISOString();
-  const notes = deserializeNotes(lead.notes);
-  if (note) {
-    notes.push({ text: note, createdAt: timestamp });
+  if (status) {
+    lead.status = status;
   }
-  const nextStatus = status || lead.status;
-  db.prepare(
-    `UPDATE leads SET status = ?, notes = ?, updated_at = ? WHERE id = ?`
-  ).run(nextStatus, serializeNotes(notes), timestamp, req.params.id);
-
-  const updated = db.prepare("SELECT * FROM leads WHERE id = ?").get(req.params.id);
-  return res.json(mapLead(updated));
+  if (note) {
+    lead.notes.push({ text: note, createdAt: timestamp });
+  }
+  lead.updatedAt = timestamp;
+  await db.write();
+  return res.json(mapLead(lead));
 });
 
 export default router;
