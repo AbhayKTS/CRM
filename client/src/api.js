@@ -23,25 +23,44 @@ export const login = (email, password) =>
     body: JSON.stringify({ email, password }),
   });
 
-export const fetchLeads = (token) =>
-  request("/api/leads", {
-    token,
-  });
+// Leads CRUD
+export const fetchLeads = (token, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return request(`/api/leads${query ? `?${query}` : ""}`, { token });
+};
 
-export const fetchSummary = (token) =>
-  request("/api/leads/summary", {
+export const fetchLead = (id, token) => request(`/api/leads/${id}`, { token });
+
+export const createLead = (payload, token) =>
+  request("/api/leads", {
+    method: "POST",
+    body: JSON.stringify(payload),
     token,
   });
 
 export const updateLead = (id, payload, token) =>
   request(`/api/leads/${id}`, {
-    method: "PATCH",
+    method: "PUT",
     body: JSON.stringify(payload),
     token,
   });
 
-export const createLead = (payload) =>
-  request("/api/leads", {
-    method: "POST",
-    body: JSON.stringify(payload),
+export const deleteLead = (id, token) =>
+  request(`/api/leads/${id}`, {
+    method: "DELETE",
+    token,
   });
+
+// Notes
+export const addNote = (leadId, text, token) =>
+  request(`/api/leads/${leadId}/notes`, {
+    method: "POST",
+    body: JSON.stringify({ text }),
+    token,
+  });
+
+export const fetchNotes = (leadId, token) =>
+  request(`/api/leads/${leadId}/notes`, { token });
+
+// Summary / Analytics
+export const fetchSummary = (token) => request("/api/leads/summary", { token });
