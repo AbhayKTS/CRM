@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import connectDB from "./db.js";
 import leadsRouter from "./leads.js";
 import { getAdminConfig, issueToken, verifyAdminPassword } from "./auth.js";
 
@@ -35,6 +36,11 @@ app.post("/api/auth/login", async (req, res) => {
 
 app.use("/api/leads", leadsRouter);
 
-app.listen(port, () => {
-  console.log(`CRM API listening on ${port}`);
-});
+const start = async () => {
+  await connectDB();
+  app.listen(port, () => {
+    console.log(`CRM API listening on ${port}`);
+  });
+};
+
+start();
