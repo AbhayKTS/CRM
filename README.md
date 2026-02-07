@@ -12,7 +12,7 @@ A simple Client Lead Management System that helps track leads, update statuses, 
 ## Tech Stack
 - **Frontend:** React + Vite
 - **Backend:** Node.js + Express
-- **Database:** SQLite (file-based)
+- **Database:** lowdb (JSON file storage)
 
 ## Getting Started
 
@@ -44,4 +44,4 @@ Default admin login:
 - `server/` Express API + SQLite database
 
 ## Notes
-The SQLite database is stored in `server/data/crm.db`.
+The JSON database is stored in `server/data/crm.json`.
