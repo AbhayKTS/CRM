@@ -1,0 +1,23 @@
+{
+  "leads": [
+    {
+      "id": "508cff1a-3120-4854-add4-b383b9857d7a",
+      "name": "Sample Lead",
+      "email": "lead1770449258665@example.com",
+      "source": "demo",
+      "status": "contacted",
+      "notes": [
+        {
+          "text": "Requested a demo.",
+          "createdAt": "2026-02-07T07:27:38.671Z"
+        },
+        {
+          "text": "hi",
+          "createdAt": "2026-02-07T07:28:06.214Z"
+        }
+      ],
+      "createdAt": "2026-02-07T07:27:38.671Z",
+      "updatedAt": "2026-02-07T07:28:19.602Z"
+    }
+  ]
+}
