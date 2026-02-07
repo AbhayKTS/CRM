@@ -17,9 +17,15 @@ body {
   padding: 32px;
 }
 
+.page.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .card {
   max-width: 420px;
-  margin: 80px auto;
+  margin: 0 auto;
   padding: 32px;
   border-radius: 16px;
   background: #ffffff;
@@ -27,6 +33,7 @@ body {
 }
 
 h1,
+h2,
 h3,
 h4 {
   margin: 0 0 12px;
@@ -50,15 +57,22 @@ label {
 
 input,
 select,
+textarea,
 button {
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #cbd5f5;
+  border: 1px solid #cbd5e1;
   font-size: 14px;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: 2px solid #6366f1;
   border-color: transparent;
 }
@@ -69,6 +83,11 @@ button {
   border: none;
   cursor: pointer;
   font-weight: 600;
+  transition: background 0.15s;
+}
+
+button:hover:not(:disabled) {
+  background: #4338ca;
 }
 
 button:disabled {
@@ -81,12 +100,36 @@ button.ghost {
   color: #312e81;
 }
 
+button.ghost:hover:not(:disabled) {
+  background: #c7d2fe;
+}
+
+button.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+button.danger:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+button.small {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+button.active {
+  background: #4f46e5;
+  color: #fff;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .header-actions {
@@ -96,7 +139,7 @@ button.ghost {
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -111,11 +154,45 @@ button.ghost {
   gap: 8px;
 }
 
+.summary-card strong {
+  font-size: 24px;
+}
+
+.source-stats {
+  margin-bottom: 24px;
+}
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.badge {
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.search-form {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-form input {
+  flex: 1;
 }
 
 .leads {
@@ -128,13 +205,27 @@ button.ghost {
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  transition: box-shadow 0.2s;
+}
+
+.lead-card:hover {
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
 }
 
 .lead-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+}
+
+.lead-header h3.clickable {
+  cursor: pointer;
+  color: #4f46e5;
+}
+
+.lead-header h3.clickable:hover {
+  text-decoration: underline;
 }
 
 .meta {
@@ -142,27 +233,16 @@ button.ghost {
   font-size: 13px;
 }
 
-.notes ul {
-  padding-left: 18px;
-  margin: 8px 0 0;
-}
-
-.notes li {
+.card-actions {
+  margin-top: 12px;
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 14px;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.notes small {
-  color: #94a3b8;
-}
-
-.actions {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: 140px 1fr 120px;
-  gap: 12px;
+.card-actions select {
+  width: 130px;
 }
 
 .status {
@@ -200,4 +280,102 @@ button.ghost {
 .hint {
   font-size: 13px;
   color: #64748b;
+  margin-top: 16px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Lead Details */
+.back-btn {
+  margin-bottom: 16px;
+}
+
+.lead-detail-card {
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.lead-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.status-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.notes-section {
+  margin-top: 24px;
+}
+
+.notes-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.notes-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.add-note-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.add-note-form input {
+  flex: 1;
 }
